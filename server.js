@@ -23,7 +23,7 @@ app.use(cors()); // Enable CORS for all routes
 app.use(express.static(path.join(__dirname, 'public')));
 
 // MongoDB Atlas connection setup using .env variable
-mongoose.connect(process.env.SWEETHUB, {
+mongoose.connect(process.env.MONGO_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 });
@@ -70,5 +70,5 @@ app.use('/api/orders/mobile', orderMobileRoutes);
 
 // Start server
 app.listen(port, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+  console.log(`Server running on http://localhost:${port}`);
 });
