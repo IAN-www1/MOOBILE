@@ -24,12 +24,8 @@ router.post('/upload-profile-image', upload.single('image'), async (req, res) =>
       return res.status(400).json({ message: 'User ID is required' });
     }
 
-    // Determine the base URL based on the request origin
-    const baseUrl = req.get('host').includes('10.0.2.2') || req.get('host').includes('localhost')
-      ? 'http://10.0.2.2:3002' // For emulator
-      : 'http://192.168.100.4:3002'; // For physical device
-
-    const profileImageUrl = `${baseUrl}/uploads/${req.file.filename}`;
+    // Use the remote server URL for the image path
+    const profileImageUrl = `https://mobile-afff.onrender.com/uploads/${req.file.filename}`;
 
     let userProfileImage = await UserProfileImage.findOne({ userId });
     if (userProfileImage) {
