@@ -66,15 +66,5 @@ router.get('/order/:orderId', async (req, res) => {
   }
 });
 
-// Fetch all orders from mobile_orders collection
-router.get('/mobile_orders', async (req, res) => {
-  try {
-    const orders = await OrderMobile.find(); // Ensure OrderMobile is your Mongoose model for mobile_orders
-    res.json(orders);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Server error' });
-  }
-});
 
 module.exports = router;
