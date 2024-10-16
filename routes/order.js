@@ -37,11 +37,17 @@ router.post('/orders/:id/update', async (req, res) => {
 // Place New Order
 router.post('/orders', async (req, res) => {
     try {
-        const { userId, totalAmount, paymentMethod, cartItems } = req.body;
+        const { userId, totalAmount, paymentMethod, cartItems, deliveryAddress } = req.body;
 
         // Basic validation
-        if (!userId || !totalAmount || !paymentMethod || !Array.isArray(cartItems) || cartItems.length === 0) {
+        if (!userId || !totalAmount || !paymentMethod || !Array.isArray(cartItems) || cartItems.length === 0 || !deliveryAddress) {
             return res.status(400).json({ error: 'Missing required fields or invalid data' });
+        }
+
+        // Ensure deliveryAddress contains the required fields
+        const { building, floor, room } = deliveryAddress;
+        if (!building || !floor || !room) {
+            return res.status(400).json({ error: 'Missing delivery address fields' });
         }
 
         // Create a new order
@@ -50,7 +56,12 @@ router.post('/orders', async (req, res) => {
             totalAmount,
             paymentMethod,
             status: 'Pending', // default status
-            cartItems
+            cartItems,
+            deliveryAddress: {
+                building,
+                floor,
+                room
+            }
         });
 
         // Save the new order
@@ -65,6 +76,7 @@ router.post('/orders', async (req, res) => {
         res.status(500).json({ error: 'Failed to place order. Please try again.' });
     }
 });
+
 
 // Clear Cart
 router.post('/clear-cart', async (req, res) => {
