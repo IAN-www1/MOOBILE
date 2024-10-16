@@ -67,12 +67,13 @@ router.post('/orders', async (req, res) => {
         // Save the new order
         await newOrder.save();
 
-        // Clear the cart items for the user
+       // Clear the cart items for the user
         await Cart.deleteMany({ userId });
 
         res.status(201).json(newOrder);
     } catch (error) {
-        console.error('Error placing order:', error);
+        console.error('Error placing order:', error.message);
+        console.error('Stack trace:', error.stack); // Add stack trace for debugging
         res.status(500).json({ error: 'Failed to place order. Please try again.' });
     }
 });
