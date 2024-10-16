@@ -1,41 +1,72 @@
-const mongoose = require('mongoose');
+const express = require('express');
+const router = express.Router();
+const Order_Mobile = require('../models/Order_Mobile');
 
-const orderSchema = new mongoose.Schema({
-    userId: { 
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Customer', // Assuming you have a User model
-        required: true 
-    },
-    billingDate: { type: Date, default: Date.now },
-    totalAmount: { type: Number, required: true },
-    paymentMethod: { type: String, required: true },
-    status: { type: String, default: 'Pending' },
-    cartItems: [
-        {
-            itemId: {
-                type: mongoose.Schema.Types.ObjectId,
-                ref: 'Item',
-                required: true
-            },
-            quantity: { type: Number, required: true },
-            size: { type: String, required: false }, // Size field is optional
-            price: { type: Number, required: false } // Price field is now optional
-        }
-    ]
-});
+// GET: Retrieve orders for a specific user
+router.get('/:userId', async (req, res) => {
+  const { userId } = req.params;
 
-// Pre-save middleware to set the price based on itemId if not provided
-orderSchema.pre('save', async function(next) {
-    const cartItems = this.cartItems;
-    for (const item of cartItems) {
-        if (!item.price) {
-            const foundItem = await mongoose.model('Item').findById(item.itemId);
-            if (foundItem) {
-                item.price = foundItem.price; // Set the price from the Item model
-            }
-        }
+  try {
+    const orders = await Order_Mobile.find({ userId: userId });
+
+    if (!orders.length) {
+      return res.status(404).json({ message: 'No orders found for this user.' });
     }
-    next();
+
+    res.status(200).json(orders);
+  } catch (error) {
+    console.error('Error fetching orders:', error);
+    res.status(500).json({ message: 'Internal server error.' });
+  }
 });
 
-module.exports = mongoose.model('Mobile_Order', orderSchema);
+// GET: Retrieve order details including item info
+router.get('/order/:orderId', async (req, res) => {
+  const { orderId } = req.params;
+
+  try {
+    const order = await Order_Mobile.findById(orderId).populate('cartItems.itemId');
+
+    if (!order) {
+      return res.status(404).json({ message: 'Order not found.' });
+    }
+
+    // Transform the order response to include price, name, size, and additional details (building, floor, room)
+    const orderDetail = {
+      _id: order._id,
+      totalAmount: order.totalAmount,
+      status: order.status,
+      building: order.building || null,  // Add building field
+      floor: order.floor || null,        // Add floor field
+      room: order.room || null,          // Add room field
+      cartItems: order.cartItems.map(item => {
+        let price;
+
+        // Check if the item has a size
+        if (item.size) {
+          // Try to find the size in the item's sizes array
+          const sizeDetail = item.itemId.sizes.find(size => size.size === item.size);
+          price = sizeDetail ? sizeDetail.price : item.itemId.price; // Fallback to item price if size not found
+        } else {
+          price = item.itemId.price; // Use the item's price if size is not specified
+        }
+
+        return {
+          itemId: item.itemId._id,
+          name: item.itemId.name,
+          image: item.itemId.image, // Add image to response
+          size: item.size || null, // Set size to null if not provided
+          quantity: item.quantity,
+          price: price,
+        };
+      }),
+    };
+
+    res.status(200).json(orderDetail);
+  } catch (error) {
+    console.error('Error fetching order:', error);
+    res.status(500).json({ message: 'Internal server error.' });
+  }
+});
+
+module.exports = router;
