@@ -21,6 +21,15 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(cors()); // Enable CORS for all routes
 app.use(express.static(path.join(__dirname, 'public')));
+// Error handling middleware
+app.use((err, req, res, next) => {
+    console.error('Error occurred:', err.message); // Log the error message
+    res.status(err.status || 500).json({
+        error: {
+            message: err.message,
+        },
+    });
+});
 
 // MongoDB Atlas connection setup using .env variable
 mongoose.connect(process.env.MONGO_URI, {
@@ -52,6 +61,7 @@ const paypalRoutes = require('./paypal/paypalRoutes');
 const orderRoutes = require('./routes/order');
 const customersRoutes = require('./routes/customerRoutes'); // Adjust path if needed
 const orderMobileRoutes = require('./routes/orderMobile');
+const mobileOrdersRouter = require('./routes/mobileOrders'); // Adjust the path as necessary
 
 // Use routes
 app.use('/signup', signupRoute);
@@ -67,8 +77,10 @@ app.use('/paypal', paypalRoutes); // Use PayPal routes
 app.use('/api', orderRoutes); // Mount the order routes on `/api`
 app.use('/customers', customersRoutes);
 app.use('/api/orders/mobile', orderMobileRoutes);
+app.use('/api/mobile/orders', mobileOrdersRouter); // Add your mobile orders route
 
 // Start server
-app.listen(port, () => {
-  console.log(`Server running on http://localhost:${port}`);
+// Start the server and listen on all interfaces
+app.listen(port, '0.0.0.0', () => {
+  console.log(`Server is running on http://0.0.0.0:${port}`);
 });
