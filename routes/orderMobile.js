@@ -31,13 +31,13 @@ router.get('/order/:orderId', async (req, res) => {
       return res.status(404).json({ message: 'Order not found.' });
     }
 
-    // Transform the order response to include price, name, size, and proof of delivery
+    // Transform the order response to include delivery address, price, name, size, and proof of delivery
     const orderDetail = {
       _id: order._id,
       totalAmount: order.totalAmount,
       status: order.status,
-      // Ensure proofOfDelivery is included correctly
-      uploadedImageUrl: order.proofOfDelivery || null, // Include proof of delivery if available
+      proofOfDelivery: order.proofOfDelivery || null, // Include proof of delivery if available
+      deliveryAddress: order.deliveryAddress || null, // Include delivery address
       cartItems: order.cartItems.map(item => {
         let price;
 
