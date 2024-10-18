@@ -31,13 +31,12 @@ router.get('/order/:orderId', async (req, res) => {
       return res.status(404).json({ message: 'Order not found.' });
     }
 
-    // Transform the order response to include delivery address, price, name, size, and proof of delivery
+    // Transform the order response to include price, name, size, and proof of delivery
     const orderDetail = {
       _id: order._id,
       totalAmount: order.totalAmount,
       status: order.status,
       proofOfDelivery: order.proofOfDelivery || null, // Include proof of delivery if available
-      deliveryAddress: order.deliveryAddress || null, // Include delivery address
       cartItems: order.cartItems.map(item => {
         let price;
 
@@ -67,7 +66,6 @@ router.get('/order/:orderId', async (req, res) => {
     res.status(500).json({ message: 'Internal server error.' });
   }
 });
-
 
 
 module.exports = router;
