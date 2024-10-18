@@ -36,7 +36,8 @@ router.get('/order/:orderId', async (req, res) => {
       _id: order._id,
       totalAmount: order.totalAmount,
       status: order.status,
-      proofOfDelivery: order.proofOfDelivery || null, // Include proof of delivery if available
+      // Ensure proofOfDelivery is included correctly
+      uploadedImageUrl: order.proofOfDelivery || null, // Include proof of delivery if available
       cartItems: order.cartItems.map(item => {
         let price;
 
@@ -66,6 +67,7 @@ router.get('/order/:orderId', async (req, res) => {
     res.status(500).json({ message: 'Internal server error.' });
   }
 });
+
 
 
 module.exports = router;
