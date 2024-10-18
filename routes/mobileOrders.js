@@ -33,36 +33,11 @@ router.get('/', async (req, res) => {
 // Route to fetch a single order by ID
 router.get('/:id', async (req, res) => {
     try {
-        const order = await Order.findById(req.params.id)
-            .populate('userId') // Populate user details
-            .populate('cartItems.itemId'); // Populate item details
-
+        const order = await Order.findById(req.params.id).populate('userId').populate('cartItems.itemId'); // Populate user and item details
         if (!order) {
             return res.status(404).json({ message: 'Order not found' });
         }
-
-        // Transform the order response to include proof of delivery
-        const orderDetail = {
-            _id: order._id,
-            customerName: order.customerName,
-            customerContact: order.customerContact,
-            deliveryAddress: order.deliveryAddress,
-            totalAmount: order.totalAmount,
-            paymentMethod: order.paymentMethod,
-            status: order.status,
-            proofOfDelivery: order.proofOfDelivery || null, // Ensure proof of delivery is included
-            cartItems: order.cartItems.map(item => ({
-                itemId: item.itemId._id,
-                name: item.itemId.name,
-                category: item.itemId.category,
-                image: item.itemId.image, // Add image to response
-                size: item.size || null, // Set size to null if not provided
-                quantity: item.quantity,
-                price: item.itemId.price, // Assuming you want the base price
-            })),
-        };
-
-        res.status(200).json(orderDetail); // Return the transformed order details
+        res.status(200).json(order); // Return the order details
     } catch (error) {
         console.error('Error fetching order details:', error);
         res.status(500).json({ message: 'Internal server error' });
