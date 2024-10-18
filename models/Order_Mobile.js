@@ -8,11 +8,11 @@ const orderSchema = new mongoose.Schema({
     },
     customerName: { 
         type: String, 
-        required: true // Ensure this is required
+        required: false // Ensure this is required
     },
     customerContact: { 
         type: String, 
-        required: true // Ensure this is required
+        required: false // Ensure this is required
     },
     username: { // New field to store username
         type: String,
@@ -38,8 +38,10 @@ const orderSchema = new mongoose.Schema({
         building: { type: String, required: true }, // Assuming building is required
         floor: { type: String, required: false }, // Floor can be optional
         room: { type: String, required: false } // Room can be optional
-    }
+    },
+    proofOfDelivery: { type: String, required: false } // New field for proof of delivery
 });
+
 
 // Pre-save middleware to set the price based on itemId if not provided
 orderSchema.pre('save', async function(next) {
