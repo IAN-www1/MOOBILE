@@ -79,9 +79,13 @@ router.patch('/:id/upload', upload.single('proof'), async (req, res) => {
         }
 
         if (req.file) {
-            order.proofOfDelivery = req.file.path; // Save the file path in the order document
+            // Save the relative file path in the order document
+            order.proofOfDelivery = req.file.path; // This should be the relative path
             await order.save(); // Save the updated order
-            return res.status(200).json({ message: 'Proof of delivery uploaded successfully' });
+            
+            // Send back the URL for the uploaded image
+            const imageUrl = `${req.protocol}://${req.get('host')}/${order.proofOfDelivery}`;
+            return res.status(200).json({ message: 'Proof of delivery uploaded successfully', imageUrl });
         } else {
             return res.status(400).json({ message: 'No file uploaded' });
         }
@@ -90,5 +94,6 @@ router.patch('/:id/upload', upload.single('proof'), async (req, res) => {
         res.status(500).json({ message: 'Internal server error' });
     }
 });
+
 
 module.exports = router;
