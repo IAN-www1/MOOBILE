@@ -82,11 +82,21 @@ router.patch('/:id/upload', upload.single('proof'), async (req, res) => {
         if (req.file) {
             // Upload the file to Imgur
             const imgurResponse = await imgur.uploadFile(req.file.path);
-            
+            console.log('Imgur Response:', imgurResponse); // Log Imgur response
+
             // Save the Imgur URL in the order document
-            order.proofOfDelivery = imgurResponse.link; // Use the correct property to get the link
-            await order.save(); // Save the updated order
+            order.proofOfDelivery = imgurResponse.link; // Ensure this matches your schema
+            console.log('Order before saving:', order); // Log the order before saving
             
+            // Attempt to save the updated order
+            try {
+                await order.save(); // Save the updated order
+                console.log('Order saved successfully:', order); // Log the saved order
+            } catch (saveError) {
+                console.error('Error saving order:', saveError); // Log any errors during save
+                return res.status(500).json({ message: 'Failed to save order' });
+            }
+
             // Remove the temporarily stored file from local storage
             fs.unlink(req.file.path, (err) => {
                 if (err) console.error('Failed to delete local file:', err);
@@ -105,4 +115,5 @@ router.patch('/:id/upload', upload.single('proof'), async (req, res) => {
         res.status(500).json({ message: 'Internal server error' });
     }
 });
+
 module.exports = router;
