@@ -49,25 +49,39 @@ router.post('/upload-profile-image', upload.single('image'), async (req, res) =>
   }
 });
 
-// Function to save image URL to MongoDB
-const _saveImageUrlToMongoDB = async (userId, profileImageUrl) => {
+// PATCH route to update profile image URL
+router.patch('/userProfileImage/upload-profile-image', async (req, res) => {
   try {
+    const { userId, profileImageUrl } = req.body; // Destructure userId and profileImageUrl from request body
+    if (!userId || !profileImageUrl) {
+      return res.status(400).json({ message: 'User ID and profile image URL are required' });
+    }
+
+    // Find the user profile image document
     let userProfileImage = await UserProfileImage.findOne({ userId });
     if (userProfileImage) {
+      // Update the existing profile image URL
       userProfileImage.profileImageUrl = profileImageUrl;
     } else {
+      // Create a new user profile image document
       userProfileImage = new UserProfileImage({
         userId,
         profileImageUrl,
       });
     }
+
+    // Save the document to MongoDB
     await userProfileImage.save();
     console.log('Image URL saved to MongoDB successfully.');
+
+    // Send a success response
+    res.status(200).json({ message: 'Profile image URL updated successfully.' });
   } catch (error) {
-    console.error('Error saving image URL to MongoDB:', error);
-    throw new Error('Failed to save image URL');
+    console.error('Error updating profile image URL:', error);
+    res.status(500).json({ message: 'Failed to update profile image URL', error: error.message });
   }
-};
+});
+
 
 // Get profile image for a specific user
 router.get('/profile-image/:userId', async (req, res) => {
