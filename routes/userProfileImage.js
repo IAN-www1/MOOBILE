@@ -50,7 +50,7 @@ router.post('/upload-profile-image', upload.single('image'), async (req, res) =>
 });
 
 // PATCH route to update profile image URL
-router.patch('/userProfileImage/upload-profile-image', async (req, res) => {
+router.patch('/upload-profile-image', async (req, res) => {
   try {
     const { userId, profileImageUrl } = req.body; // Destructure userId and profileImageUrl from request body
     if (!userId || !profileImageUrl) {
