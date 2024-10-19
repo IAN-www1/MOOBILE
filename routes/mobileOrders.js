@@ -71,7 +71,6 @@ router.patch('/:id/status', async (req, res) => {
     }
 });
 
-// Route to upload proof of delivery to Imgur
 router.patch('/:id/upload', upload.single('proof'), async (req, res) => {
     try {
         const order = await Order.findById(req.params.id);
@@ -80,14 +79,11 @@ router.patch('/:id/upload', upload.single('proof'), async (req, res) => {
         }
 
         if (req.file) {
-            // Upload the file to Imgur
             const imgurResponse = await imgur.uploadFile(req.file.path);
-            
-            // Save the Imgur URL in the order document
-            order.proofOfDelivery = imgurResponse.link; // Use the correct property to get the link
-            await order.save(); // Save the updated order
-            
-            // Remove the temporarily stored file from local storage
+            order.proofOfDelivery = imgurResponse.data.link; // Set the Imgur link
+
+            await order.save();
+
             fs.unlink(req.file.path, (err) => {
                 if (err) console.error('Failed to delete local file:', err);
             });
@@ -95,7 +91,7 @@ router.patch('/:id/upload', upload.single('proof'), async (req, res) => {
             // Return the Imgur URL to the client
             return res.status(200).json({
                 message: 'Proof of delivery uploaded successfully',
-                imageUrl: imgurResponse.link
+                imageUrl: imgurResponse.data.link // Ensure this is the Imgur URL
             });
         } else {
             return res.status(400).json({ message: 'No file uploaded' });
@@ -105,4 +101,5 @@ router.patch('/:id/upload', upload.single('proof'), async (req, res) => {
         res.status(500).json({ message: 'Internal server error' });
     }
 });
+
 module.exports = router;
