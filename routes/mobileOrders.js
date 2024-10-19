@@ -115,5 +115,21 @@ router.patch('/:id/upload', upload.single('proof'), async (req, res) => {
         res.status(500).json({ message: 'Internal server error' });
     }
 });
-
+// PATCH route to update proof of delivery URL
+router.patch('/:id', async (req, res) => {
+  try {
+    const { proofOfDelivery } = req.body; // Destructure proofOfDelivery from request body
+    const order = await MobileOrder.findByIdAndUpdate(
+      req.params.id,
+      { proofOfDelivery: proofOfDelivery }, // Update the proofOfDelivery field
+      { new: true } // Return the updated document
+    );
+    if (!order) {
+      return res.status(404).send('Order not found');
+    }
+    res.send(order); // Send back the updated order
+  } catch (error) {
+    res.status(500).send('Error updating order: ' + error.message);
+  }
+});
 module.exports = router;
