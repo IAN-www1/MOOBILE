@@ -80,12 +80,12 @@ router.patch('/:id/upload', upload.single('proof'), async (req, res) => {
         }
 
         if (req.file) {
-            // Use imgur's upload method with the file path
+            // Upload the file to Imgur
             const imgurResponse = await imgur.uploadFile(req.file.path);
             
             // Save the Imgur URL in the order document
-            order.proofOfDelivery = imgurResponse.link; // Change this to imgurResponse.link
-            await order.save();
+            order.proofOfDelivery = imgurResponse.link; // Use the correct property to get the link
+            await order.save(); // Save the updated order
             
             // Remove the temporarily stored file from local storage
             fs.unlink(req.file.path, (err) => {
@@ -95,7 +95,7 @@ router.patch('/:id/upload', upload.single('proof'), async (req, res) => {
             // Return the Imgur URL to the client
             return res.status(200).json({
                 message: 'Proof of delivery uploaded successfully',
-                imageUrl: imgurResponse.link // Return the correct link
+                imageUrl: imgurResponse.link
             });
         } else {
             return res.status(400).json({ message: 'No file uploaded' });
@@ -105,6 +105,4 @@ router.patch('/:id/upload', upload.single('proof'), async (req, res) => {
         res.status(500).json({ message: 'Internal server error' });
     }
 });
-
-
 module.exports = router;
