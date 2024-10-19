@@ -2,15 +2,20 @@ const express = require('express');
 const router = express.Router();
 const Order = require('../models/Order_Mobile'); // Adjust the path as necessary
 const multer = require('multer');
+const imgur = require('imgur');
+const fs = require('fs');
 const path = require('path');
 
 // Load environment variables from .env file
 require('dotenv').config();
 
-// Set up multer for file uploads
+// Set your Imgur Client ID
+imgur.setClientId(process.env.IMGUR_CLIENT_ID);
+
+// Set up multer for file uploads (storing files locally temporarily)
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        cb(null, process.env.UPLOAD_DIR || 'uploads/'); // Use environment variable for uploads folder
+        cb(null, process.env.UPLOAD_DIR || 'uploads/'); // Temporary storage
     },
     filename: function (req, file, cb) {
         cb(null, `${Date.now()}_${file.originalname}`); // Rename the file to avoid conflicts
@@ -70,7 +75,7 @@ router.patch('/:id/status', async (req, res) => {
     }
 });
 
-// Route to upload proof of delivery
+// Route to upload proof of delivery to Imgur
 router.patch('/:id/upload', upload.single('proof'), async (req, res) => {
     try {
         const order = await Order.findById(req.params.id);
@@ -79,13 +84,23 @@ router.patch('/:id/upload', upload.single('proof'), async (req, res) => {
         }
 
         if (req.file) {
-            // Save the relative file path in the order document
-            order.proofOfDelivery = req.file.path; // This should be the relative path
+            // Upload the file to Imgur
+            const imgurResponse = await imgur.uploadFile(req.file.path);
+            
+            // Save the Imgur URL in the order document
+            order.proofOfDelivery = imgurResponse.data.link;
             await order.save(); // Save the updated order
             
-            // Construct the URL for the uploaded image
-            const imageUrl = `${req.protocol}://${req.get('host')}/${order.proofOfDelivery}`;
-            return res.status(200).json({ message: 'Proof of delivery uploaded successfully', imageUrl });
+            // Remove the temporarily stored file from local storage
+            fs.unlink(req.file.path, (err) => {
+                if (err) console.error('Failed to delete local file:', err);
+            });
+
+            // Return the Imgur URL to the client
+            return res.status(200).json({
+                message: 'Proof of delivery uploaded successfully',
+                imageUrl: imgurResponse.data.link
+            });
         } else {
             return res.status(400).json({ message: 'No file uploaded' });
         }
@@ -94,7 +109,5 @@ router.patch('/:id/upload', upload.single('proof'), async (req, res) => {
         res.status(500).json({ message: 'Internal server error' });
     }
 });
-
-
 
 module.exports = router;
