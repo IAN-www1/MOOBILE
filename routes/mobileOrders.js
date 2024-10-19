@@ -119,7 +119,7 @@ router.patch('/:id/upload', upload.single('proof'), async (req, res) => {
 router.patch('/:id', async (req, res) => {
   try {
     const { proofOfDelivery } = req.body; // Destructure proofOfDelivery from request body
-    const order = await MobileOrder.findByIdAndUpdate(
+    const order = await Order.findByIdAndUpdate(
       req.params.id,
       { proofOfDelivery: proofOfDelivery }, // Update the proofOfDelivery field
       { new: true } // Return the updated document
