@@ -4,13 +4,9 @@ const Order = require('../models/Order_Mobile'); // Adjust the path as necessary
 const multer = require('multer');
 const imgur = require('imgur');
 const fs = require('fs');
-const path = require('path');
 
 // Load environment variables from .env file
 require('dotenv').config();
-
-// Set your Imgur Client ID
-imgur.setClientId(process.env.IMGUR_CLIENT_ID);
 
 // Set up multer for file uploads (storing files locally temporarily)
 const storage = multer.diskStorage({
@@ -88,7 +84,7 @@ router.patch('/:id/upload', upload.single('proof'), async (req, res) => {
             const imgurResponse = await imgur.uploadFile(req.file.path);
             
             // Save the Imgur URL in the order document
-            order.proofOfDelivery = imgurResponse.data.link;
+            order.proofOfDelivery = imgurResponse.link; // Use the correct property to get the link
             await order.save(); // Save the updated order
             
             // Remove the temporarily stored file from local storage
@@ -99,7 +95,7 @@ router.patch('/:id/upload', upload.single('proof'), async (req, res) => {
             // Return the Imgur URL to the client
             return res.status(200).json({
                 message: 'Proof of delivery uploaded successfully',
-                imageUrl: imgurResponse.data.link
+                imageUrl: imgurResponse.link
             });
         } else {
             return res.status(400).json({ message: 'No file uploaded' });
@@ -109,5 +105,4 @@ router.patch('/:id/upload', upload.single('proof'), async (req, res) => {
         res.status(500).json({ message: 'Internal server error' });
     }
 });
-
 module.exports = router;
