@@ -100,30 +100,6 @@ router.get('/profile-image/:userId', async (req, res) => {
   }
 });
 
-// PATCH endpoint to update the profile image URL in the database
-router.patch('/userProfileImage/upload-profile-image', async (req, res) => {
-  try {
-    const { userId, profileImageUrl } = req.body;
-    if (!userId || !profileImageUrl) {
-      return res.status(400).json({ message: 'User ID and profile image URL are required' });
-    }
 
-    let userProfileImage = await UserProfileImage.findOne({ userId });
-    if (userProfileImage) {
-      userProfileImage.profileImageUrl = profileImageUrl;
-    } else {
-      userProfileImage = new UserProfileImage({
-        userId,
-        profileImageUrl,
-      });
-    }
-    await userProfileImage.save();
-
-    res.status(200).json({ message: 'Profile image URL updated successfully', filePath: profileImageUrl });
-  } catch (error) {
-    console.error('Error updating image URL:', error);
-    res.status(500).json({ message: 'Failed to update image URL', error });
-  }
-});
 
 module.exports = router;
