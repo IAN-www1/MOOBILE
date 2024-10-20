@@ -5,7 +5,7 @@ const cartItemSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'Customer', required: true },
   items: [{
     itemId: { type: mongoose.Schema.Types.ObjectId, ref: 'Item', required: true },
-    itemName: { type: String, required: true }, // Include itemName field
+    name: { type: String, required: true } // Include name field from Item schema
     quantity: { type: Number, required: true },
     size: { type: String, required: false }, // Make size optional
     price: { type: Number, required: true }// Added price field
