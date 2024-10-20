@@ -28,5 +28,5 @@ const itemSchema = new mongoose.Schema({
   reviews: [reviewSchema] // Array of reviews
 });
 
-const Item = mongoose.model('Item', itemSchema);
+const Item = mongoose.model('Iteem', itemSchema);
 module.exports = Item;
