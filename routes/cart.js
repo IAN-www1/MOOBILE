@@ -1,31 +1,112 @@
-const mongoose = require('mongoose');
-const Item = require('../models/Item');
+const express = require('express');
+const Cart = require('../models/Cart');
+const router = express.Router();
 
-const cartItemSchema = new mongoose.Schema({
-  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'Customer', required: true },
-  items: [{
-    itemId: { type: mongoose.Schema.Types.ObjectId, ref: 'Item', required: true },
-    quantity: { type: Number, required: true },
-    size: { type: String, required: false }, // Make size optional
-    price: { type: Number, required: true } // Added price field
-  }],
+// Get cart items for a user
+router.get('/:userId', async (req, res) => {
+  try {
+    // Fetch the cart for the given userId
+    const cart = await Cart.findOne({ userId: req.params.userId }).populate('items.itemId');
+
+    // Check if cart exists
+    if (cart) {
+      // Return the cart items
+      res.json(cart);
+    } else {
+      // Respond with an empty cart if no cart is found
+      res.status(200).json({ items: [] }); // Return an empty array for items
+    }
+  } catch (error) {
+    // Handle server errors
+    console.error('Error fetching cart:', error);
+    res.status(500).json({ message: error.message });
+  }
 });
 
-// Optional: Create a method to calculate the price based on size
-cartItemSchema.methods.calculatePrice = async function() {
-  const item = await Item.findById(this.itemId); // Fetch the item
-  if (!item) return 0; // Handle case where item is not found
+// Add item to cart
+router.post('/add', async (req, res) => {
+  const { userId, itemId, quantity, size, price } = req.body; // Include price here
 
-  const sizePriceMap = item.sizes.find(s => s.size === this.size); // Find size pricing
-  return sizePriceMap ? sizePriceMap.price : item.basePrice; // Use size price or base price
-};
+  try {
+    // Fetch the cart for the given userId
+    let cart = await Cart.findOne({ userId });
 
-// Update the cart item price when adding to the cart
-cartItemSchema.pre('save', async function(next) {
-  this.price = await this.calculatePrice();
-  next();
+    if (!cart) {
+      // Create a new cart if one does not exist
+      cart = new Cart({
+        userId,
+        items: [{ itemId, quantity, size, price }] // Include price when adding the item
+      });
+    } else {
+      // Update quantity if item already exists in the cart
+      const itemIndex = cart.items.findIndex(item => item.itemId.toString() === itemId && item.size === size);
+      if (itemIndex >= 0) {
+        cart.items[itemIndex].quantity += quantity;
+        // Optionally, you may want to update the price if it can change
+        // cart.items[itemIndex].price = price; 
+      } else {
+        // Add new item if it does not exist
+        cart.items.push({ itemId, quantity, size, price }); // Include price here as well
+      }
+    }
+
+    // Save the updated cart
+    const updatedCart = await cart.save();
+    res.status(200).json(updatedCart);
+  } catch (error) {
+    // Handle server errors
+    console.error('Error adding item to cart:', error);
+    res.status(500).json({ message: error.message });
+  }
 });
 
-const Cart = mongoose.model('Cart', cartItemSchema);
+// Remove item from cart
+router.post('/remove', async (req, res) => {
+  const { userId, itemId, size } = req.body; // Get itemId and size from request body
 
-module.exports = Cart;
+  try {
+    // Fetch the cart for the given userId
+    const cart = await Cart.findOne({ userId });
+    if (cart) {
+      // Remove the item from the cart based on itemId and size
+      cart.items = cart.items.filter(item => 
+        item.itemId.toString() !== itemId || item.size !== size // Keep items that don't match both itemId and size
+      );
+
+      await cart.save(); // Save the updated cart
+      res.status(200).json(cart); // Respond with the updated cart
+    } else {
+      // Respond with 404 if cart is not found
+      res.status(404).json({ message: 'Cart not found' });
+    }
+  } catch (error) {
+    // Handle server errors
+    console.error('Error removing item from cart:', error);
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// Remove all items from cart
+router.post('/remove-all', async (req, res) => {
+  const { userId } = req.body;
+
+  try {
+    // Fetch the cart for the given userId
+    const cart = await Cart.findOne({ userId });
+    if (cart) {
+      // Clear all items from the cart
+      cart.items = [];
+      await cart.save();
+      res.status(200).json(cart);
+    } else {
+      // Respond with 404 if cart is not found
+      res.status(404).json({ message: 'Cart not found' });
+    }
+  } catch (error) {
+    // Handle server errors
+    console.error('Error removing all items from cart:', error);
+    res.status(500).json({ message: error.message });
+  }
+});
+
+module.exports = router;
