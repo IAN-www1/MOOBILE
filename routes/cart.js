@@ -25,7 +25,7 @@ router.get('/:userId', async (req, res) => {
 
 // Add item to cart
 router.post('/add', async (req, res) => {
-  const { userId, itemId, quantity, size, price } = req.body; // Include price here
+  const { userId, itemId, quantity, size, price, itemName } = req.body; // Include itemName here
 
   try {
     // Fetch the cart for the given userId
@@ -35,7 +35,7 @@ router.post('/add', async (req, res) => {
       // Create a new cart if one does not exist
       cart = new Cart({
         userId,
-        items: [{ itemId, quantity, size, price }] // Include price when adding the item
+        items: [{ itemId, quantity, size, price, itemName }] // Include itemName when adding the item
       });
     } else {
       // Update quantity if item already exists in the cart
@@ -46,7 +46,7 @@ router.post('/add', async (req, res) => {
         // cart.items[itemIndex].price = price; 
       } else {
         // Add new item if it does not exist
-        cart.items.push({ itemId, quantity, size, price }); // Include price here as well
+        cart.items.push({ itemId, quantity, size, price, itemName }); // Include itemName here as well
       }
     }
 
