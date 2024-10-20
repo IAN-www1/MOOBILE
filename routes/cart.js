@@ -25,19 +25,11 @@ router.get('/:userId', async (req, res) => {
 
 // Add item to cart
 router.post('/add', async (req, res) => {
-  const { userId, itemId, quantity, size, price } = req.body; // Removed itemName from request body
+  const { userId, itemId, quantity, size, price, name } = req.body; // Include itemName here
 
   try {
     // Fetch the cart for the given userId
     let cart = await Cart.findOne({ userId });
-
-    // Fetch item details to get the name
-    const item = await Item.findById(itemId);
-    if (!item) {
-      return res.status(404).json({ message: 'Item not found' }); // Handle case where item does not exist
-    }
-    
-    const itemName = item.name; // Get the item name from the fetched item
 
     if (!cart) {
       // Create a new cart if one does not exist
