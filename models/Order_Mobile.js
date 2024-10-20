@@ -29,6 +29,10 @@ const orderSchema = new mongoose.Schema({
                 ref: 'Item',
                 required: true
             },
+            itemName: { // New field for item name
+                type: String,
+                required: true // Ensure this is required
+            },
             quantity: { type: Number, required: true },
             size: { type: String, required: false }, // Size field is optional
             price: { type: Number, required: false } // Price field is now optional
