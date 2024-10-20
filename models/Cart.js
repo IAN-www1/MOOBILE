@@ -1,15 +1,14 @@
 const mongoose = require('mongoose');
-const Item = require('./Item');
+const Item = require('./Item'); // Make sure this path is correct
 
 const cartItemSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'Customer', required: true },
   items: [{
     itemId: { type: mongoose.Schema.Types.ObjectId, ref: 'Item', required: true },
-    name: { type: String, required: true } // Include name field from Item schema
     quantity: { type: Number, required: true },
     size: { type: String, required: false }, // Make size optional
-    price: { type: Number, required: true }// Added price field
-    
+    price: { type: Number, required: true }, // Added price field
+    itemName: { type: String, required: true } // Ensure itemName is included
   }],
 });
 
@@ -19,7 +18,7 @@ cartItemSchema.methods.calculatePrice = async function() {
   if (!item) return 0; // Handle case where item is not found
 
   const sizePriceMap = item.sizes.find(s => s.size === this.size); // Find size pricing
-  return sizePriceMap ? sizePriceMap.price : item.basePrice; // Use size price or base price
+  return sizePriceMap ? sizePriceMap.price : item.price; // Use size price or item price
 };
 
 // Update the cart item price when adding to the cart
