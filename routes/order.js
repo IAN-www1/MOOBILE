@@ -61,15 +61,7 @@ router.post('/orders', async (req, res) => {
             totalAmount,
             paymentMethod,
             status: 'Pending', // default status
-            cartItems: cartItems.map(item => {
-                // Include the item name in the order
-                return {
-                    itemId: item.itemId,
-                    quantity: item.quantity,
-                    size: item.size || null, // Accept size or set to null if not provided
-                    price: item.price // Include price, which should already be set correctly in the cart
-                };
-            }),
+            cartItems,
             deliveryAddress // Include deliveryAddress in the order
         });
 
@@ -94,7 +86,6 @@ router.post('/orders', async (req, res) => {
         res.status(500).json({ error: 'Failed to place order. Please try again.' });
     }
 });
-
 
 
 // Clear Cart
