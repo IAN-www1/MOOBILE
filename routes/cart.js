@@ -24,54 +24,39 @@ router.get('/:userId', async (req, res) => {
   }
 });
 
-// Place New Order
-router.post('/orders', async (req, res) => {
-    try {
-        const { userId, totalAmount, paymentMethod, cartItems, deliveryAddress } = req.body;
+router.post('/add', async (req, res) => {
+  const { userId, itemId, name, quantity, size } = req.body;
 
-        // Basic validation
-        if (!userId || !totalAmount || !paymentMethod || !Array.isArray(cartItems) || cartItems.length === 0 || !deliveryAddress) {
-            return res.status(400).json({ error: 'Missing required fields or invalid data' });
-        }
-
-        // Fetch customer details
-        const customer = await Customer.findById(userId);
-        if (!customer) {
-            return res.status(404).json({ error: 'Customer not found' });
-        }
-
-        // Create a new order
-        const newOrder = new Order({
-            userId, // Include userId in the order
-            customerName: customer.name || 'Guest', // Default to 'Guest' if no name
-            customerContact: customer.contact || 'N/A', // Default to 'N/A' if no contact
-            username: customer.username || 'Unknown', // Default to 'Unknown' if no username
-            totalAmount,
-            paymentMethod,
-            status: 'Pending', // default status
-            cartItems,
-            deliveryAddress // Include deliveryAddress in the order
-        });
-
-        // Save the new order
-        await newOrder.save();
-
-        // Clear the cart items for the user
-        await Cart.deleteMany({ userId });
-
-        // Send success response
-        res.status(201).json({
-            message: 'Order placed successfully!',
-            orderId: newOrder._id,
-            orderDetails: newOrder
-        });
-
-
-    } catch (error) {
-        console.error('Error placing order:', error);
-        res.status(500).json({ error: 'Failed to place order. Please try again.' });
+  try {
+    const item = await Item.findById(itemId);
+    if (!item) {
+      return res.status(404).json({ message: 'Item not found' });
     }
+
+    let cart = await Cart.findOne({ userId });
+
+    if (!cart) {
+      cart = new Cart({ userId, items: [] }); // Initialize a new cart
+    }
+
+    const cartItem = {
+      itemId,
+      name,
+      quantity,
+      size,
+    };
+
+    cart.items.push(cartItem); // Add the cart item to the cart
+
+    await cart.save(); // Save the cart
+    res.status(200).json({ message: 'Item added to cart successfully', cart });
+
+  } catch (error) {
+    console.error('Error adding item to cart:', error);
+    res.status(500).json({ message: 'Error adding item to cart', error: error.message });
+  }
 });
+
 // Remove all items from cart
 router.post('/remove-all', async (req, res) => {
   const { userId } = req.body;
