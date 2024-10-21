@@ -1,5 +1,6 @@
 const express = require('express');
 const Cart = require('../models/Cart');
+const Item = require('../models/Item'); // Adjust path if necessary
 const router = express.Router();
 
 // Get cart items for a user
