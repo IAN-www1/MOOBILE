@@ -59,21 +59,17 @@ router.post('/add', async (req, res) => {
       }
     }
 
-    // Save the cart with a callback for better error handling
-    await cart.save((err, result) => {
-      if (err) {
-        console.error('MongoDB save error:', err);
-        return res.status(500).json({ message: 'Error saving cart', error: err });
-      }
-      console.log('Cart saved successfully:', result);
-      res.status(200).json({ message: 'Item added to cart successfully', cart: result });
-    });
+    // Save the cart using async/await without callback
+    const savedCart = await cart.save();
+    console.log('Cart saved successfully:', savedCart);
+    res.status(200).json({ message: 'Item added to cart successfully', cart: savedCart });
 
   } catch (error) {
     console.error('Error adding item to cart:', error); // Log full error object
     res.status(500).json({ message: 'Error adding item to cart', error: error.message || error });
   }
 });
+
 
 // Remove item from cart
 router.post('/remove', async (req, res) => {
