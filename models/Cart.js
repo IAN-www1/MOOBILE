@@ -5,6 +5,7 @@ const cartItemSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'Customer', required: true },
   items: [{
     itemId: { type: mongoose.Schema.Types.ObjectId, ref: 'Item', required: true },
+    name: { type: String, required: true }, // Added item name
     quantity: { type: Number, required: true },
     size: { type: String, required: false }, // Make size optional
     price: { type: Number, required: true } // Added price field
@@ -20,9 +21,13 @@ cartItemSchema.methods.calculatePrice = async function() {
   return sizePriceMap ? sizePriceMap.price : item.basePrice; // Use size price or base price
 };
 
-// Update the cart item price when adding to the cart
+// Update the cart item name and price when adding to the cart
 cartItemSchema.pre('save', async function(next) {
-  this.price = await this.calculatePrice();
+  const item = await Item.findById(this.items[0].itemId); // Fetch the item details
+  if (item) {
+    this.items[0].name = item.name; // Set the item name
+    this.items[0].price = await this.items[0].calculatePrice(); // Set the price
+  }
   next();
 });
 
