@@ -24,79 +24,56 @@ router.get('/:userId', async (req, res) => {
   }
 });
 
-router.post('/add', async (req, res) => {
-  const { userId, itemId, name, quantity, size, price } = req.body;
+// Place New Order
+router.post('/orders', async (req, res) => {
+    try {
+        const { userId, totalAmount, paymentMethod, cartItems, deliveryAddress } = req.body;
 
-  console.log('Received data:', req.body); // Log incoming request data
+        // Basic validation
+        if (!userId || !totalAmount || !paymentMethod || !Array.isArray(cartItems) || cartItems.length === 0 || !deliveryAddress) {
+            return res.status(400).json({ error: 'Missing required fields or invalid data' });
+        }
 
-  try {
-    // Fetch the item from the Item model to ensure it exists
-    const item = await Item.findById(itemId);
-    if (!item) {
-      console.log(`Item not found: ${itemId}`);
-      return res.status(404).json({ message: 'Item not found' });
+        // Fetch customer details
+        const customer = await Customer.findById(userId);
+        if (!customer) {
+            return res.status(404).json({ error: 'Customer not found' });
+        }
+
+        // Create a new order
+        const newOrder = new Order({
+            userId, // Include userId in the order
+            customerName: customer.name || 'Guest', // Default to 'Guest' if no name
+            customerContact: customer.contact || 'N/A', // Default to 'N/A' if no contact
+            username: customer.username || 'Unknown', // Default to 'Unknown' if no username
+            totalAmount,
+            paymentMethod,
+            status: 'Pending', // default status
+            cartItems,
+            deliveryAddress // Include deliveryAddress in the order
+        });
+
+        // Save the new order
+        await newOrder.save();
+
+        // Clear the cart items for the user
+        await Cart.deleteMany({ userId });
+
+        // Send success response
+        res.status(201).json({
+            message: 'Order placed successfully!',
+            orderId: newOrder._id,
+            orderDetails: newOrder
+        });
+
+        // Log the successful checkout (print message)
+        console.log(Order with ID: ${newOrder._id} was successfully placed for User ID: ${userId});
+
+    } catch (error) {
+        console.error('Error placing order:', error);
+        res.status(500).json({ error: 'Failed to place order. Please try again.' });
     }
-
-    // Fetch the cart for the given userId
-    let cart = await Cart.findOne({ userId });
-
-    if (!cart) {
-      // Create a new cart if one does not exist
-      cart = new Cart({
-        userId,
-        items: [{ itemId, name, quantity, size, price }] // Include name and price when adding the item
-      });
-    } else {
-      // Check if the item already exists in the cart with the same size
-      const itemIndex = cart.items.findIndex(item => item.itemId.toString() === itemId && item.size === size);
-
-      if (itemIndex >= 0) {
-        // Update quantity if the item already exists in the cart
-        cart.items[itemIndex].quantity += quantity;
-      } else {
-        // Add new item if it does not exist
-        cart.items.push({ itemId, name, quantity, size, price });
-      }
-    }
-
-    // Save the cart using async/await without callback
-    const savedCart = await cart.save();
-    console.log('Cart saved successfully:', savedCart);
-    res.status(200).json({ message: 'Item added to cart successfully', cart: savedCart });
-
-  } catch (error) {
-    console.error('Error adding item to cart:', error); // Log full error object
-    res.status(500).json({ message: 'Error adding item to cart', error: error.message || error });
-  }
 });
-
-
-// Remove item from cart
-router.post('/remove', async (req, res) => {
-  const { userId, itemId, size } = req.body; // Get itemId and size from request body
-
-  try {
-    // Fetch the cart for the given userId
-    const cart = await Cart.findOne({ userId });
-    if (cart) {
-      // Remove the item from the cart based on itemId and size
-      cart.items = cart.items.filter(item => 
-        item.itemId.toString() !== itemId || item.size !== size // Keep items that don't match both itemId and size
-      );
-
-      await cart.save(); // Save the updated cart
-      res.status(200).json(cart); // Respond with the updated cart
-    } else {
-      // Respond with 404 if cart is not found
-      res.status(404).json({ message: 'Cart not found' });
-    }
-  } catch (error) {
-    // Handle server errors
-    console.error('Error removing item from cart:', error);
-    res.status(500).json({ message: error.message });
-  }
-});
-
 // Remove all items from cart
 router.post('/remove-all', async (req, res) => {
   const { userId } = req.body;
