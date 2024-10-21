@@ -29,7 +29,6 @@ const orderSchema = new mongoose.Schema({
                 ref: 'Item',
                 required: true
             },
-            name: { type: String, required: true }, // Add name field for item name
             quantity: { type: Number, required: true },
             size: { type: String, required: false }, // Size field is optional
             price: { type: Number, required: false } // Price field is now optional
@@ -44,24 +43,20 @@ const orderSchema = new mongoose.Schema({
 });
 
 
-// Pre-save middleware to set the price and name based on itemId if not provided
+// Pre-save middleware to set the price based on itemId if not provided
 orderSchema.pre('save', async function(next) {
     const cartItems = this.cartItems;
     for (const item of cartItems) {
-        if (!item.price || !item.name) { // Check if price or name is missing
+        if (!item.price) {
             const foundItem = await mongoose.model('Item').findById(item.itemId);
             if (foundItem) {
-                if (!item.price) {
-                    item.price = foundItem.price; // Set the price from the Item model
-                }
-                if (!item.name) {
-                    item.name = foundItem.name; // Set the name from the Item model
-                }
+                item.price = foundItem.price; // Set the price from the Item model
             }
         }
     }
     next();
 });
+
 // Pre-save middleware to fetch customer details
 orderSchema.pre('save', async function(next) {
     if (this.isNew) { // Only run for new orders
