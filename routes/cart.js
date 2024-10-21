@@ -25,35 +25,48 @@ router.get('/:userId', async (req, res) => {
 });
 
 router.post('/add', async (req, res) => {
-  const { userId, itemId, name, quantity, size } = req.body;
+  const { userId, itemId, name, quantity, size, price } = req.body;
+
+  console.log('Received data:', req.body); // Log incoming request data
 
   try {
+    // Fetch the item from the Item model to ensure it exists
     const item = await Item.findById(itemId);
     if (!item) {
+      console.log(`Item not found: ${itemId}`);
       return res.status(404).json({ message: 'Item not found' });
     }
 
+    // Fetch the cart for the given userId
     let cart = await Cart.findOne({ userId });
 
     if (!cart) {
-      cart = new Cart({ userId, items: [] }); // Initialize a new cart
+      // Create a new cart if one does not exist
+      cart = new Cart({
+        userId,
+        items: [{ itemId, name, quantity, size, price }] // Include name and price when adding the item
+      });
+    } else {
+      // Check if the item already exists in the cart with the same size
+      const itemIndex = cart.items.findIndex(item => item.itemId.toString() === itemId && item.size === size);
+
+      if (itemIndex >= 0) {
+        // Update quantity if the item already exists in the cart
+        cart.items[itemIndex].quantity += quantity;
+      } else {
+        // Add new item if it does not exist
+        cart.items.push({ itemId, name, quantity, size, price });
+      }
     }
 
-    const cartItem = {
-      itemId,
-      name,
-      quantity,
-      size,
-    };
-
-    cart.items.push(cartItem); // Add the cart item to the cart
-
-    await cart.save(); // Save the cart
-    res.status(200).json({ message: 'Item added to cart successfully', cart });
+    // Save the cart using async/await without callback
+    const savedCart = await cart.save();
+    console.log('Cart saved successfully:', savedCart);
+    res.status(200).json({ message: 'Item added to cart successfully', cart: savedCart });
 
   } catch (error) {
-    console.error('Error adding item to cart:', error);
-    res.status(500).json({ message: 'Error adding item to cart', error: error.message });
+    console.error('Error adding item to cart:', error); // Log full error object
+    res.status(500).json({ message: 'Error adding item to cart', error: error.message || error });
   }
 });
 
