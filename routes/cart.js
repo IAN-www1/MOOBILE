@@ -66,8 +66,6 @@ router.post('/orders', async (req, res) => {
             orderDetails: newOrder
         });
 
-        // Log the successful checkout (print message)
-        console.log(Order with ID: ${newOrder._id} was successfully placed for User ID: ${userId});
 
     } catch (error) {
         console.error('Error placing order:', error);
