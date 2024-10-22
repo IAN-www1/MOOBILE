@@ -69,6 +69,31 @@ router.post('/add', async (req, res) => {
     res.status(500).json({ message: 'Error adding item to cart', error: error.message || error });
   }
 });
+// Remove item from cart
+router.post('/remove', async (req, res) => {
+  const { userId, itemId, size } = req.body; // Get itemId and size from request body
+
+  try {
+    // Fetch the cart for the given userId
+    const cart = await Cart.findOne({ userId });
+    if (cart) {
+      // Remove the item from the cart based on itemId and size
+      cart.items = cart.items.filter(item => 
+        item.itemId.toString() !== itemId || item.size !== size // Keep items that don't match both itemId and size
+      );
+
+      await cart.save(); // Save the updated cart
+      res.status(200).json(cart); // Respond with the updated cart
+    } else {
+      // Respond with 404 if cart is not found
+      res.status(404).json({ message: 'Cart not found' });
+    }
+  } catch (error) {
+    // Handle server errors
+    console.error('Error removing item from cart:', error);
+    res.status(500).json({ message: error.message });
+  }
+});
 
 // Remove all items from cart
 router.post('/remove-all', async (req, res) => {
