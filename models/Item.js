@@ -20,7 +20,6 @@ const itemSchema = new mongoose.Schema({
   image: String,
   price: Number,
   description: String,
-  favoriteCount: { type: Number, default: 0 }, // Add this line
   sizes: [{
     size: String,
     price: Number,
