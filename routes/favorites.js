@@ -44,8 +44,8 @@ router.post('/add', validateFavorite, async (req, res) => {
   }
 });
 
-// Add item to favorites
-router.post('/add', validateFavorite, async (req, res) => {
+// Remove item from favorites
+router.post('/remove', validateFavorite, async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(400).json({ errors: errors.array() });
@@ -53,20 +53,39 @@ router.post('/add', validateFavorite, async (req, res) => {
 
   try {
     const { userId, itemId } = req.body;
-    const existingFavorite = await Favorite.findOne({ userId, itemId });
-    
-    if (existingFavorite) {
-      return res.status(400).json({ message: 'Item already in favorites' });
+    const result = await Favorite.findOneAndDelete({ userId, itemId });
+
+    if (!result) {
+      return res.status(404).json({ message: 'Favorite not found' });
     }
 
-    const favorite = new Favorite({ userId, itemId });
-    await favorite.save();
-    res.status(201).json(favorite);
+    res.status(200).json({ message: 'Item removed from favorites' });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 });
+// Get user's favorites
+router.get('/user/:userId', sanitizeParams, [
+  param('userId').isMongoId().withMessage('Invalid user ID')
+], async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
 
+  try {
+    const { userId } = req.params;
+    const favorites = await Favorite.find({ userId }).populate('itemId');
+    
+    if (favorites.length === 0) {
+      return res.status(404).json({ message: 'No favorites found' });
+    }
+
+    res.status(200).json(favorites);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
 // Remove all favorites for a user
 router.post('/removeAll', [
   body('userId').isMongoId().withMessage('Invalid user ID')
