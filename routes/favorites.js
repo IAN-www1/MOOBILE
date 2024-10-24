@@ -34,28 +34,11 @@ router.post('/add', validateFavorite, async (req, res) => {
 
     const favorite = new Favorite({ userId, itemId });
     await favorite.save();
+
+    // Increment the favorite count for the item
+    await Item.findByIdAndUpdate(itemId, { $inc: { favoriteCount: 1 } });
+
     res.status(201).json(favorite);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-});
-
-// Remove item from favorites
-router.post('/remove', validateFavorite, async (req, res) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
-  }
-
-  try {
-    const { userId, itemId } = req.body;
-    const result = await Favorite.findOneAndDelete({ userId, itemId });
-
-    if (!result) {
-      return res.status(404).json({ message: 'Favorite not found' });
-    }
-
-    res.status(200).json({ message: 'Item removed from favorites' });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
