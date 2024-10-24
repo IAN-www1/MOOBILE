@@ -44,24 +44,24 @@ router.post('/add', validateFavorite, async (req, res) => {
   }
 });
 
-// Get user's favorites
-router.get('/user/:userId', sanitizeParams, [
-  param('userId').isMongoId().withMessage('Invalid user ID')
-], async (req, res) => {
+// Add item to favorites
+router.post('/add', validateFavorite, async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(400).json({ errors: errors.array() });
   }
 
   try {
-    const { userId } = req.params;
-    const favorites = await Favorite.find({ userId }).populate('itemId');
+    const { userId, itemId } = req.body;
+    const existingFavorite = await Favorite.findOne({ userId, itemId });
     
-    if (favorites.length === 0) {
-      return res.status(404).json({ message: 'No favorites found' });
+    if (existingFavorite) {
+      return res.status(400).json({ message: 'Item already in favorites' });
     }
 
-    res.status(200).json(favorites);
+    const favorite = new Favorite({ userId, itemId });
+    await favorite.save();
+    res.status(201).json(favorite);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
