@@ -25,7 +25,11 @@ const itemSchema = new mongoose.Schema({
     price: Number,
     _id: mongoose.Schema.Types.ObjectId
   }],
-  reviews: [reviewSchema] // Array of reviews
+  reviews: [reviewSchema], // Array of reviews
+  favoriteCount: {          // New field for favorite count
+    type: Number,
+    default: 0              // Default value set to 0
+  }
 });
 
 const Item = mongoose.model('Item', itemSchema);
