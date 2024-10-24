@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Favorite = require('../models/Favorite');
+const Item = require('../models/Item'); // Adjust the path according to your folder structure
 const { body, param, validationResult } = require('express-validator');
 
 // Middleware to sanitize and trim request parameters
