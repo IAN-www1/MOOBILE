@@ -57,12 +57,12 @@ const favoritesRoutes = require('./routes/favorites');
 const userProfileImageRoutes = require('./routes/userProfileImage'); // Adjust path as needed
 const cartRoutes = require('./routes/cart'); // Adjust path if needed
 const customerRoutes = require('./routes/customer'); // Adjust path if needed
-const paypalRoutes = require('./paypal/paypalRoutes');
 const orderRoutes = require('./routes/order');
 const customersRoutes = require('./routes/customerRoutes'); // Adjust path if needed
 const orderMobileRoutes = require('./routes/orderMobile');
 const mobileOrdersRouter = require('./routes/mobileOrders'); // Adjust the path as necessary
 const reviewRoutes = require('./routes/review'); // Ensure the path to the file is correct
+const playerRoutes = require('./routes/player'); // Adjust path as necessary
 
 // Use routes
 app.use('/signup', signupRoute);
@@ -74,12 +74,12 @@ app.use('/api/favorites', favoritesRoutes);
 app.use('/api/userProfileImage', userProfileImageRoutes); // If your routes are prefixed with /api
 app.use('/cart', cartRoutes);
 app.use('/customer', customerRoutes);
-app.use('/paypal', paypalRoutes); // Use PayPal routes
 app.use('/api', orderRoutes); // Mount the order routes on `/api`
 app.use('/customers', customersRoutes);
 app.use('/api/orders/mobile', orderMobileRoutes);
 app.use('/api/mobile/orders', mobileOrdersRouter); // Add your mobile orders route
 app.use('/reviews', reviewRoutes); // This makes all review routes available at the `/reviews` endpoint
+app.use('/player', playerRoutes);
 
 // Start server
 // Start the server and listen on all interfaces
