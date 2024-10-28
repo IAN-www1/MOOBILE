@@ -68,8 +68,6 @@ router.post('/orders', async (req, res) => {
         // Save the new order
         await newOrder.save();
 
-        // Clear the cart items for the user
-        await Cart.deleteMany({ userId });
 
         // Send success response
         res.status(201).json({
@@ -88,37 +86,33 @@ router.post('/orders', async (req, res) => {
 });
 
 
-
+// Clear Cart
 router.post('/clear-cart', async (req, res) => {
     try {
         const { userId, itemsToRemove } = req.body;
 
-        console.log('Received userId:', userId);
-        console.log('Items to remove:', itemsToRemove);
-
-        const deleteResults = await Promise.all(itemsToRemove.map(async (item) => {
-            const { itemId, size } = item;
-            console.log(`Attempting to delete item with itemId: ${itemId}, size: ${size}`);
-            return await Cart.deleteOne({ 
-                userId, 
-                itemId: mongoose.Types.ObjectId(itemId), // Convert itemId to ObjectId
-                size 
-            });
-        }));
-
-        const deletedCount = deleteResults.reduce((count, result) => count + (result.deletedCount || 0), 0);
-
-        if (deletedCount > 0) {
-            return res.status(200).json({ message: 'Selected items cleared from cart successfully' });
-        } else {
-            console.log('No matching items found to clear from the cart');
-            return res.status(404).json({ message: 'No matching items found to clear from the cart' });
+        if (!userId) {
+            return res.status(400).json({ error: 'User ID is required' });
         }
+
+        if (!Array.isArray(itemsToRemove) || itemsToRemove.length === 0) {
+            return res.status(400).json({ error: 'Items to remove are required' });
+        }
+
+        // Loop through each item to remove individually
+        for (const item of itemsToRemove) {
+            const result = await Cart.updateOne(
+                { userId },
+                { $pull: { items: { itemId: item.itemId, size: item.size } } }
+            );
+            console.log(`Removing item: ${JSON.stringify(item)} - Result: ${JSON.stringify(result)}`);
+        }
+
+        res.status(200).json({ message: 'Selected items removed from cart successfully' });
     } catch (error) {
-        console.error('Error clearing cart:', error);
-        res.status(500).json({ error: 'Failed to clear cart. Please try again.' });
+        console.error('Error clearing specific items from cart:', error);
+        res.status(500).json({ error: 'Failed to clear selected items from cart. Please try again.' });
     }
 });
-
 
 module.exports = router;
