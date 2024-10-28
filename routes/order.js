@@ -99,7 +99,11 @@ router.post('/clear-cart', async (req, res) => {
         const deleteResults = await Promise.all(itemsToRemove.map(async (item) => {
             const { itemId, size } = item;
             console.log(`Attempting to delete item with itemId: ${itemId}, size: ${size}`);
-            return await Cart.deleteOne({ userId, itemId, size });
+            return await Cart.deleteOne({ 
+                userId, 
+                itemId: mongoose.Types.ObjectId(itemId), // Convert itemId to ObjectId
+                size 
+            });
         }));
 
         const deletedCount = deleteResults.reduce((count, result) => count + (result.deletedCount || 0), 0);
