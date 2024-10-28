@@ -88,7 +88,11 @@ router.post('/orders', async (req, res) => {
 });
 
 
-// Clear specific item from Cart
+const express = require('express');
+const router = express.Router();
+const Cart = require('../models/Cart'); // Adjust this path to where your Cart model is located
+
+// Clear specific items from the cart
 router.post('/clear-cart', async (req, res) => {
     try {
         const { userId, itemsToRemove } = req.body;
@@ -104,11 +108,14 @@ router.post('/clear-cart', async (req, res) => {
         // Loop through each item to remove and delete from the cart
         const deleteResults = await Promise.all(itemsToRemove.map(async (item) => {
             const { itemId, size } = item;
+            if (!itemId || !size) {
+                return { deletedCount: 0 };
+            }
             return await Cart.deleteOne({ userId, itemId, size });
         }));
 
         // Check if any items were deleted
-        const deletedCount = deleteResults.reduce((count, result) => count + result.deletedCount, 0);
+        const deletedCount = deleteResults.reduce((count, result) => count + (result.deletedCount || 0), 0);
 
         if (deletedCount > 0) {
             return res.status(200).json({ message: 'Selected items cleared from cart successfully' });
@@ -120,6 +127,9 @@ router.post('/clear-cart', async (req, res) => {
         res.status(500).json({ error: 'Failed to clear cart. Please try again.' });
     }
 });
+
+module.exports = router;
+
 
 
 module.exports = router;
