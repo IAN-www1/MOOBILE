@@ -89,34 +89,25 @@ router.post('/orders', async (req, res) => {
 
 
 
-// Clear specific items from the cart
 router.post('/clear-cart', async (req, res) => {
     try {
         const { userId, itemsToRemove } = req.body;
 
-        if (!userId) {
-            return res.status(400).json({ error: 'User ID is required' });
-        }
+        console.log('Received userId:', userId);
+        console.log('Items to remove:', itemsToRemove);
 
-        if (!itemsToRemove || !Array.isArray(itemsToRemove) || itemsToRemove.length === 0) {
-            return res.status(400).json({ error: 'Items to remove are required' });
-        }
-
-        // Loop through each item to remove and delete from the cart
         const deleteResults = await Promise.all(itemsToRemove.map(async (item) => {
             const { itemId, size } = item;
-            if (!itemId || !size) {
-                return { deletedCount: 0 };
-            }
+            console.log(`Attempting to delete item with itemId: ${itemId}, size: ${size}`);
             return await Cart.deleteOne({ userId, itemId, size });
         }));
 
-        // Check if any items were deleted
         const deletedCount = deleteResults.reduce((count, result) => count + (result.deletedCount || 0), 0);
 
         if (deletedCount > 0) {
             return res.status(200).json({ message: 'Selected items cleared from cart successfully' });
         } else {
+            console.log('No matching items found to clear from the cart');
             return res.status(404).json({ message: 'No matching items found to clear from the cart' });
         }
     } catch (error) {
