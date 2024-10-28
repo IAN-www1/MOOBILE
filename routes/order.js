@@ -88,9 +88,6 @@ router.post('/orders', async (req, res) => {
 });
 
 
-const express = require('express');
-const router = express.Router();
-const Cart = require('../models/Cart'); // Adjust this path to where your Cart model is located
 
 // Clear specific items from the cart
 router.post('/clear-cart', async (req, res) => {
@@ -127,9 +124,6 @@ router.post('/clear-cart', async (req, res) => {
         res.status(500).json({ error: 'Failed to clear cart. Please try again.' });
     }
 });
-
-module.exports = router;
-
 
 
 module.exports = router;
