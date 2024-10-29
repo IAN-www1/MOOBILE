@@ -52,6 +52,13 @@ router.post('/orders', async (req, res) => {
             return res.status(404).json({ error: 'Customer not found' });
         }
 
+        const _getPriceForSize = (sizes, size) => {
+            if (!sizes || !size) return 0.0;
+
+            const sizePriceMap = sizes.find(element => element.size === size);
+            return sizePriceMap ? (sizePriceMap.price || 0.0) : 0.0;
+        };
+
         // Create a new order
         const newOrder = new Order({
             userId, // Include userId in the order
@@ -61,11 +68,15 @@ router.post('/orders', async (req, res) => {
             totalAmount,
             paymentMethod,
             status: 'Pending', // default status
-            // Modify cartItems to include item names
-            cartItems: cartItems.map(item => ({
-                ...item,
-                itemName: item.name // Add the name of the item
-            })),
+            // Modify cartItems to include item names and handle sizes appropriately
+            cartItems: cartItems.map(item => {
+                const price = item.size ? _getPriceForSize(item.itemId.sizes, item.size) || item.price : item.price;
+                return {
+                    ...item,
+                    itemName: item.name, // Add the name of the item
+                    price: price // Ensure the correct price is set
+                };
+            }),
             deliveryAddress // Include deliveryAddress in the order
         });
 
@@ -87,9 +98,6 @@ router.post('/orders', async (req, res) => {
         res.status(500).json({ error: 'Failed to place order. Please try again.' });
     }
 });
-
-
-
 
 // Clear Cart
 router.post('/clear-cart', async (req, res) => {
