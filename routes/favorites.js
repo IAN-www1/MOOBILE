@@ -109,5 +109,22 @@ router.post('/removeAll', [
     res.status(500).json({ message: error.message });
   }
 });
+// Route to get item by ID
+router.get('/:itemId/count', async (req, res) => {
+  const itemId = req.params.itemId; // Access itemId from the URL
+  console.log(`Received request for item ID: ${itemId}`); // Log the item ID
+
+  try {
+    const item = await Item.findById(itemId);
+
+    if (!item) {
+      return res.status(404).json({ message: 'Item not found' });
+    }
+    res.json(item); // Respond with item details
+  } catch (error) {
+    console.error(`Error fetching item: ${error.message}`); // Log any errors
+    res.status(500).json({ message: error.message });
+  }
+});
 
 module.exports = router;
