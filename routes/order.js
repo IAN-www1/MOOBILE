@@ -1,23 +1,37 @@
 const express = require('express');
 const router = express.Router();
+const mongoose = require('mongoose'); // Ensure this line is present
 const Order = require('../models/Order_Mobile');
 const Cart = require('../models/Cart'); // Ensure you have a Cart model
 const Customer = require('../models/Customer'); // Adjust path as needed
+const Item = require('../models/Item'); // Ensure you have an Item model
 
 // View Order Details
 router.get('/orders/:id', async (req, res) => {
     try {
+        // Fetch the order with populated cartItems
         const order = await Order.findById(req.params.id).populate('cartItems.itemId');
+
         if (!order) {
             return res.status(404).send('Order not found');
         }
-        res.render('order', { order });
+
+        // Map through cartItems to add soldCount
+        const orderDetails = await Promise.all(order.cartItems.map(async (cartItem) => {
+            const itemDetails = await Item.findById(cartItem.itemId); // Fetch item details
+            return {
+                ...cartItem.toObject(),
+                soldCount: itemDetails ? itemDetails.soldCount : 0 // Add soldCount to the order item
+            };
+        }));
+
+        // Render the order with updated order details
+        res.render('order', { order: { ...order.toObject(), cartItems: orderDetails } });
     } catch (error) {
         console.error('Error fetching order:', error);
         res.status(500).send(error.message);
     }
 });
-
 // Update Order Status
 router.post('/orders/:id/update', async (req, res) => {
     console.log('Received request to update order:', req.params.id); // Debugging line
@@ -80,6 +94,11 @@ router.post('/orders', async (req, res) => {
             deliveryAddress // Include deliveryAddress in the order
         });
 
+        // Increment soldCount for each item in the order
+        await Promise.all(cartItems.map(async (item) => {
+            await Item.findByIdAndUpdate(item.itemId, { $inc: { soldCount: 1 } });
+        }));
+
         // Save the new order
         await newOrder.save();
 
@@ -98,6 +117,8 @@ router.post('/orders', async (req, res) => {
         res.status(500).json({ error: 'Failed to place order. Please try again.' });
     }
 });
+
+
 
 // Clear Cart
 router.post('/clear-cart', async (req, res) => {
@@ -125,6 +146,36 @@ router.post('/clear-cart', async (req, res) => {
     } catch (error) {
         console.error('Error clearing specific items from cart:', error);
         res.status(500).json({ error: 'Failed to clear selected items from cart. Please try again.' });
+    }
+});
+// Get Sold Count for a Specific Item
+router.get('/items/:id/count', async (req, res) => {
+    try {
+        const itemId = req.params.id;
+
+        // Validate the ObjectId
+        if (!mongoose.Types.ObjectId.isValid(itemId)) {
+            return res.status(400).json({ error: 'Invalid item ID format' });
+        }
+
+        // Create an ObjectId instance
+        const itemObjectId = new mongoose.Types.ObjectId(itemId);
+
+        // Aggregate to count the number of sold items with completed status
+        const result = await Order.aggregate([
+            { $match: { 'cartItems.itemId': itemObjectId, status: 'Completed' } }, // Match orders containing the item with Completed status
+            { $unwind: '$cartItems' }, // Deconstruct the cartItems array
+            { $match: { 'cartItems.itemId': itemObjectId } }, // Match again to filter cart items
+            { $group: { _id: null, soldCount: { $sum: '$cartItems.quantity' } } } // Sum up the quantity sold
+        ]);
+
+        // Get sold count or default to 0
+        const soldCount = result.length > 0 ? result[0].soldCount : 0;
+
+        res.json({ soldCount });
+    } catch (error) {
+        console.error('Error fetching sold count:', error);
+        res.status(500).json({ error: 'Failed to fetch sold count' });
     }
 });
 
