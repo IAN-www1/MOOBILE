@@ -26,7 +26,11 @@ const itemSchema = new mongoose.Schema({
     _id: mongoose.Schema.Types.ObjectId
   }],
   reviews: [reviewSchema], // Array of reviews
-  favoriteCount: {          // New field for favorite count
+  favoriteCount: {          // Field for favorite count
+    type: Number,
+    default: 0              // Default value set to 0
+  },
+  soldCount: {              // New field for sold count
     type: Number,
     default: 0              // Default value set to 0
   }
