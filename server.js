@@ -63,6 +63,7 @@ const orderMobileRoutes = require('./routes/orderMobile');
 const mobileOrdersRouter = require('./routes/mobileOrders'); // Adjust the path as necessary
 const reviewRoutes = require('./routes/review'); // Ensure the path to the file is correct
 const playerRoutes = require('./routes/player'); // Adjust path as necessary
+const paypalRoutes = require('./routes/paypal');
 
 // Use routes
 app.use('/signup', signupRoute);
@@ -80,6 +81,7 @@ app.use('/api/orders/mobile', orderMobileRoutes);
 app.use('/api/mobile/orders', mobileOrdersRouter); // Add your mobile orders route
 app.use('/reviews', reviewRoutes); // This makes all review routes available at the `/reviews` endpoint
 app.use('/player', playerRoutes);
+app.use('/api', paypalRoutes);
 
 // Start server
 // Start the server and listen on all interfaces
