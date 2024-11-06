@@ -116,7 +116,7 @@ router.get('/success', async (req, res) => {
         // Step 4: Update the order status in the database using the orderId (which is the MongoDB _id)
         const updatedOrder = await Order.findByIdAndUpdate(
           orderId,  // MongoDB _id passed as orderId
-          { status: 'To Pay' },  // Update the order status
+          { status: 'Pending' },  // Update the order status
           { new: true }  // Return the updated order
         );
   
