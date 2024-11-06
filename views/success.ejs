@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Order Success</title>
+  <style>
+    body { font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0; color: #333; }
+    .container { width: 80%; margin: 0 auto; padding: 20px; background-color: #fff; }
+    h3 { color: #007bff; }
+    .order-summary { margin-top: 30px; }
+    .button { padding: 10px 20px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px; }
+    .footer { text-align: center; padding: 20px; font-size: 14px; color: #777; }
+    .footer a { color: #007bff; }
+    
+    /* Ensure the table is responsive */
+    .order-summary-table-container {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: auto; /* Allow columns to adjust based on content */
+    }
+
+    th, td {
+      padding: 10px;
+      text-align: left;
+      border-bottom: 1px solid #ddd;
+    }
+
+    th {
+      background-color: #f8f9fa;
+    }
+
+    td.text-right {
+      text-align: right;
+    }
+
+    .total-cell {
+      font-weight: bold;
+    }
+
+    /* Responsive fix for small screens */
+    @media screen and (max-width: 768px) {
+      table {
+        font-size: 14px;
+      }
+
+      th, td {
+        padding: 8px;
+      }
+
+      .order-summary-table-container {
+        width: 100%;
+        overflow-x: scroll;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div style="text-align: center; padding: 20px;">
+      <!-- Reference the logo from /public/img/ -->
+      <img src="/img/event-3.png" alt="Company Logo" height="50">
+    </div>
+    <div style="text-align: center; font-size: 24px; font-weight: bold; color: #28a745;">
+      Your order has been successfully placed!
+    </div>
+    <div style="text-align: center; font-size: 18px; color: #333;">
+      Thank you for shopping with us. Your order ID is <strong>#<%= orderDetails._id %></strong>. You will receive a notification for your order shortly.
+    </div>
+
+    <!-- Customer Details -->
+    <div style="text-align: center; margin-top: 30px;">
+      <h3>Customer Information</h3>
+      <p><strong>Name:</strong> <%= orderDetails.customerName %></p>
+      <p><strong>Contact:</strong> <%= orderDetails.customerContact %></p>
+      <p><strong>Username:</strong> <%= orderDetails.username %></p>
+    </div>
+
+    <!-- Order Summary -->
+    <div class="order-summary">
+      <h3>Order Summary</h3>
+      <div class="order-summary-table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th>Size</th> <!-- Added Size Column -->
+              <th class="text-right">Price</th>
+              <th class="text-right">Quantity</th>
+              <th class="text-right">Subtotal</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% let totalAmount = 0; %>
+            <% orderDetails.cartItems.forEach(item => { %>
+            <tr>
+              <td><%= item.name %></td>
+              <td><%= item.size ? item.size : 'N/A' %></td>
+              <td class="text-right">₱<%= item.price.toFixed(2) %></td>
+              <td class="text-right"><%= item.quantity %></td>
+              <td class="text-right">₱<%= (item.price * item.quantity).toFixed(2) %></td>
+            </tr>
+            <% totalAmount += (item.price * item.quantity); %>
+            <% }); %>
+            <tr>
+              <td colspan="4" class="total-cell text-right">Total</td>
+              <td class="text-right total-cell">₱<%= totalAmount.toFixed(2) %></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div style="text-align: center; font-size: 18px; margin-top: 20px; color: #555;">
+      Your order is being processed and will be shipped soon.
+    </div>
+
+  <div class="footer">
+    <p>&copy; 2024 EJ'S SWEETHUBS. All rights reserved.</p>
+  </div>
+</body>
+</html>
