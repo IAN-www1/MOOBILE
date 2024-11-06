@@ -32,24 +32,6 @@ router.get('/orders/:id', async (req, res) => {
         res.status(500).send(error.message);
     }
 });
-// Update Order Status
-router.post('/orders/:id/update', async (req, res) => {
-    console.log('Received request to update order:', req.params.id); // Debugging line
-    try {
-        const { status } = req.body;
-        const order = await Order.findById(req.params.id);
-        if (!order) {
-            return res.status(404).send('Order not found');
-        }
-        order.status = status;
-        await order.save();
-        res.redirect(`/orders/${order._id}`);
-    } catch (error) {
-        console.error('Error updating order status:', error);
-        res.status(500).send(error.message);
-    }
-});
-
 // Place New Order
 router.post('/orders', async (req, res) => {
     try {
@@ -73,6 +55,12 @@ router.post('/orders', async (req, res) => {
             return sizePriceMap ? (sizePriceMap.price || 0.0) : 0.0;
         };
 
+        // Check if payment method is PayPal and set status accordingly
+        let orderStatus = 'Pending';
+        if (paymentMethod.toLowerCase() === 'paypal') {
+            orderStatus = 'To Pay'; // Set status to 'To Pay' if PayPal is selected
+        }
+
         // Create a new order
         const newOrder = new Order({
             userId, // Include userId in the order
@@ -81,7 +69,7 @@ router.post('/orders', async (req, res) => {
             username: customer.username || 'Unknown', // Default to 'Unknown' if no username
             totalAmount,
             paymentMethod,
-            status: 'Pending', // default status
+            status: orderStatus, // Set the order status
             // Modify cartItems to include item names and handle sizes appropriately
             cartItems: cartItems.map(item => {
                 const price = item.size ? _getPriceForSize(item.itemId.sizes, item.size) || item.price : item.price;
