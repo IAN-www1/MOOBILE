@@ -97,4 +97,36 @@ router.put('/order/:orderId/cancel', async (req, res) => {
   }
 });
 
+// Route to mark the order as "received" and change status to "completed"
+router.put('/order/:orderId/received', async (req, res) => {
+  const { orderId } = req.params;
+
+  try {
+    // Find the order by ID
+    const order = await Order_Mobile.findById(orderId);
+
+    if (!order) {
+      return res.status(404).json({ message: 'Order not found' });
+    }
+
+    // Ensure the order is in 'delivered' status before marking it as 'completed'
+    if (order.status.toLowerCase() !== 'delivered') {
+      return res.status(400).json({ message: 'Order must be delivered before it can be marked as received' });
+    }
+
+    // Update the order's status to 'completed'
+    order.status = 'Completed';
+    await order.save(); // Save the updated order
+
+    // Return success response
+    res.status(200).json({
+      message: 'Order has been successfully marked as received and completed',
+      order: order
+    });
+  } catch (error) {
+    console.error('Error marking order as received:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
 module.exports = router;
