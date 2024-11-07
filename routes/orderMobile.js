@@ -67,5 +67,34 @@ router.get('/order/:orderId', async (req, res) => {
   }
 });
 
+// Route to cancel an order
+router.put('/order/:orderId/cancel', async (req, res) => {
+  try {
+      // Find the order by ID
+      const order = await Order_Mobile.findById(req.params.orderId);  // Use Order_Mobile model
+
+      if (!order) {
+          return res.status(404).json({ message: 'Order not found' });
+      }
+
+      // Check if the order is still in "Pending" status
+      if (order.status.toLowerCase() !== 'pending') {
+          return res.status(400).json({ message: 'Only pending orders can be canceled' });
+      }
+
+      // Update the order's status to "Canceled"
+      order.status = 'Cancelled';
+      await order.save(); // Save the updated order
+
+      // Return success response
+      res.status(200).json({
+          message: 'Order has been successfully canceled',
+          order: order
+      });
+  } catch (error) {
+      console.error('Error canceling order:', error);
+      res.status(500).json({ message: 'Internal server error' });
+  }
+});
 
 module.exports = router;
