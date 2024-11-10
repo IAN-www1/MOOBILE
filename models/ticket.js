@@ -47,7 +47,7 @@ const ticketSchema = new mongoose.Schema({
       },
       sender: {
         type: String,
-        default: 'You', // Default sender is 'User'
+        default: 'User', // Default sender is 'User'
       },
       createdAt: {
         type: Date,
