@@ -35,11 +35,17 @@ router.get('/orders/:id', async (req, res) => {
 // Place New Order
 router.post('/orders', async (req, res) => {
     try {
-        const { userId, totalAmount, paymentMethod, cartItems, deliveryAddress } = req.body;
+        const { userId, totalAmount, paymentMethod, cartItems, deliveryAddress, deliveryOption } = req.body;
 
         // Basic validation
-        if (!userId || !totalAmount || !paymentMethod || !Array.isArray(cartItems) || cartItems.length === 0 || !deliveryAddress) {
+        if (!userId || !totalAmount || !paymentMethod || !Array.isArray(cartItems) || cartItems.length === 0 || !deliveryAddress || !deliveryOption) {
             return res.status(400).json({ error: 'Missing required fields or invalid data' });
+        }
+
+        // Validate delivery option
+        const validDeliveryOptions = ['Deliver', 'Self Pick-Up'];
+        if (!validDeliveryOptions.includes(deliveryOption)) {
+            return res.status(400).json({ error: 'Invalid delivery option' });
         }
 
         // Fetch customer details
@@ -79,7 +85,8 @@ router.post('/orders', async (req, res) => {
                     price: price // Ensure the correct price is set
                 };
             }),
-            deliveryAddress // Include deliveryAddress in the order
+            deliveryAddress, // Include deliveryAddress in the order
+            deliveryOption // Include deliveryOption in the order
         });
 
         // Increment soldCount for each item in the order
