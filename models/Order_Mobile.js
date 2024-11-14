@@ -21,6 +21,10 @@ const orderSchema = new mongoose.Schema({
     billingDate: { type: Date, default: Date.now },
     totalAmount: { type: Number, required: true },
     paymentMethod: { type: String, required: true },
+      deliveryOption: { // New field for delivery option
+        type: String,
+        required: true // Set to true if delivery option is mandatory
+    },
     status: { type: String, default: 'Pending' },
     cartItems: [
         {
