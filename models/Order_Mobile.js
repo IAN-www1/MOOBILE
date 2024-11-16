@@ -23,7 +23,7 @@ const orderSchema = new mongoose.Schema({
     paymentMethod: { type: String, required: true },
       deliveryOption: { // New field for delivery option
         type: String,
-        required: true // Set to true if delivery option is mandatory
+        required: false // Set to true if delivery option is mandatory
     },
     status: { type: String, default: 'Pending' },
     cartItems: [
