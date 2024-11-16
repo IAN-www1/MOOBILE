@@ -88,4 +88,27 @@ router.get('/customer-details/:userId', async (req, res) => {
     res.status(500).json({ message: 'Server error', error });
   }
 });
+
+// Get RFID Balance Route
+router.get('/rfid-balance/:userId', async (req, res) => {
+  const { userId } = req.params;
+
+  try {
+    // Find customer by user ID
+    const customer = await Customer.findById(userId);
+    if (!customer) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Return RFID balance and RFID tag ID
+    res.status(200).json({
+      rfidTagId: customer.rfidTagId, // Ensure this field is present in your schema
+      balance: customer.balance,
+    });
+  } catch (error) {
+    console.error(error); // Log the error for debugging
+    res.status(500).json({ message: 'Server error', error });
+  }
+});
+
 module.exports = router;
