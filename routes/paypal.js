@@ -49,8 +49,8 @@ router.post('/create-paypal-order', async (req, res) => {
           },
         ],
         application_context: {
-            return_url: `https://moobile.onrender.com/api/success?orderId=${orderId}`,  // Pass the _id (orderId)
-            cancel_url: 'https://moobile.onrender.com/api/cancel', // Adjust URL as needed
+            return_url: `https://mobile-c0tj.onrender.com/api/success?orderId=${orderId}`,  // Pass the _id (orderId)
+            cancel_url: 'https://mobile-c0tj.onrender.com/api/cancel', // Adjust URL as needed
         },
       },
       {
