@@ -35,7 +35,7 @@ router.post('/', async (req, res) => {
       subject: 'Password Reset Request',
       html: `
         <p>You requested a password reset.</p>
-        <p>Click <a href="http://localhost:3002/reset/${resetToken}">here</a> to reset your password.</p>
+        <p>Click <a href="https://mobile-c0tj.onrender.com/reset/${resetToken}">here</a> to reset your password.</p>
       `,
     };
 
