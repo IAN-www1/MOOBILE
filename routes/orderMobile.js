@@ -109,10 +109,10 @@ router.put('/order/:orderId/received', async (req, res) => {
       return res.status(404).json({ message: 'Order not found' });
     }
 
-    // Ensure the order is in 'delivered' status before marking it as 'completed'
-    if (order.status.toLowerCase() !== 'delivered') {
-      return res.status(400).json({ message: 'Order must be delivered before it can be marked as received' });
-    }
+ // Ensure the order is in 'delivered' or 'ready for pick up' status before marking it as 'completed'
+if (order.status.toLowerCase() !== 'delivered' && order.status.toLowerCase() !== 'ready for pick up') {
+  return res.status(400).json({ message: 'Order must be delivered or ready for pick up before it can be marked as received' });
+}
 
     // Update the order's status to 'completed'
     order.status = 'Completed';
